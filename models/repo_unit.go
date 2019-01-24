@@ -20,6 +20,7 @@ type RepoUnit struct {
 	RepoID      int64              `xorm:"INDEX(s)"`
 	Type        UnitType           `xorm:"INDEX(s)"`
 	Config      core.Conversion    `xorm:"TEXT"`
+	AllowAnonymous bool
 	CreatedUnix timeutil.TimeStamp `xorm:"INDEX CREATED"`
 }
 

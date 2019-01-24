@@ -29,23 +29,47 @@ func (p *Permission) IsAdmin() bool {
 
 // HasAccess returns true if the current user has at least read access to any unit of this repository
 func (p *Permission) HasAccess() bool {
+	for _, u := range p.Units {
+		if u.AllowAnonymous {
+			return true
+		}
+	}
+
 	if p.UnitsMode == nil {
 		return p.AccessMode >= AccessModeRead
 	}
 	return len(p.UnitsMode) > 0
 }
 
-// UnitAccessMode returns current user accessmode to the specify unit of the repository
+// UnitAccessMode returns the unit's minial accessmode to be accessed
 func (p *Permission) UnitAccessMode(unitType UnitType) AccessMode {
-	if p.UnitsMode == nil {
-		for _, u := range p.Units {
-			if u.Type == unitType {
-				return p.AccessMode
+	var found bool
+	for _, u := range p.Units {
+		if u.Type == unitType {
+			if u.AllowAnonymous {
+				return AccessModeRead
 			}
+			found = true
+		}
+	}
+
+	if p.UnitsMode == nil {
+		if found {
+			return p.AccessMode
 		}
 		return AccessModeNone
 	}
 	return p.UnitsMode[unitType]
+}
+
+// CanAnonymousAccess returns true if anonymous access is enabled
+func (p *Permission) CanAnonymousAccess(unitType UnitType) bool {
+	for _, u := range p.Units {
+		if u.Type == unitType {
+			return u.AllowAnonymous
+		}
+	}
+	return false
 }
 
 // CanAccess returns true if user has mode access to the unit of the repository
